@@ -50,6 +50,62 @@ hemat_rakyat_triliun_atas = (hemat_vol_atas * 1_000_000 * 1000 * harga_bbm) / 1_
 st.subheader(f"⚡ Penghematan Konsumsi Nasional: {persen_bawah:.1f}% - {persen_atas:.1f}%")
 st.caption("Dari total target Pertalite per tahun")
 
+# Card Metrik (Redaksi sudah diubah sesuai permintaan)
+col1, col2, col3 = st.columns(3)
+col1.metric("🛢️ Volume BBM Dihemat (Juta KL)", f"{hemat_vol_bawah:.2f} - {hemat_vol_atas:.2f}")
+col2.metric("🏛️ Uang subsidi negara yg bisa dihemat", f"Rp {hemat_subsidi_triliun_atas:.1f} T", f"{hari_wfh} hari WFH")
+col3.metric("🛍️ Uang masyarakat yg dihemat untuk bensin", f"Rp {hemat_rakyat_triliun_atas:.1f} T", f"{hari_wfh} hari WFH")
+
+st.markdown("---")
+
+# --- VISUALISASI GRAFIK PLOTLY ---
+st.markdown("### 📊 Visualisasi Data")
+col_chart1, col_chart2 = st.columns(2)
+
+with col_chart1:
+    categories = ['Volume Tahunan']
+    fig_volume = go.Figure(data=[
+        go.Bar(name='Dihemat (Skenario Atas)', x=categories, y=[hemat_vol_atas], marker_color='#FF6B6B'),
+        go.Bar(name='Tetap Dikonsumsi', x=categories, y=[total_konsumsi_tahunan - hemat_vol_atas], marker_color='#E0E0E0')
+    ])
+    fig_volume.update_layout(title="Perbandingan Volume di APBN", barmode='stack', margin=dict(l=0, r=0, t=40, b=0))
+    st.plotly_chart(fig_volume, use_container_width=True)
+
+with col_chart2:
+    fig_gauge = go.Figure(go.Indicator(
+        mode = "gauge+number",
+        value = persen_atas,
+        domain = {'x': [0, 1], 'y': [0, 1]},
+        title = {'text': f"Klaim vs Riil ({hari_wfh} Hari)", 'font': {'size': 14}},
+        gauge = {
+            'axis': {'range': [None, 30]},
+            'bar': {'color': "#FF6B6B"},
+            'steps': [
+                {'range': [0, persen_bawah], 'color': '#FFDADA'},
+                {'range': [persen_bawah, persen_atas], 'color': '#FF8E8E'},
+                {'range': [20, 20.5], 'color': 'black'}
+            ],
+            'threshold': {'line': {'color': "black", 'width': 4}, 'thickness': 0.75, 'value': 20}
+        }
+    ))
+    fig_gauge.update_layout(margin=dict(l=0, r=0, t=40, b=0))
+    st.plotly_chart(fig_gauge, use_container_width=True)
+pengali_hari = (hari_wfh * 52) / 365
+faktor_kepatuhan = kepatuhan / 100
+
+hemat_vol_bawah = konsumsi_bawah_tahunan * pengali_hari * faktor_kepatuhan
+hemat_vol_atas = konsumsi_atas_tahunan * pengali_hari * faktor_kepatuhan
+
+persen_bawah = (hemat_vol_bawah / total_konsumsi_tahunan) * 100
+persen_atas = (hemat_vol_atas / total_konsumsi_tahunan) * 100
+
+hemat_subsidi_triliun_atas = (hemat_vol_atas * 1_000_000 * 1000 * subsidi) / 1_000_000_000_000
+hemat_rakyat_triliun_atas = (hemat_vol_atas * 1_000_000 * 1000 * harga_bbm) / 1_000_000_000_000
+
+# --- TAMPILAN DASHBOARD UTAMA ---
+st.subheader(f"⚡ Penghematan Konsumsi Nasional: {persen_bawah:.1f}% - {persen_atas:.1f}%")
+st.caption("Dari total target Pertalite per tahun")
+
 # Card Metrik
 col1, col2, col3 = st.columns(3)
 col1.metric("🛢️ Volume BBM Dihemat (Juta KL)", f"{hemat_vol_bawah:.2f} - {hemat_vol_atas:.2f}")
