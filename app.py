@@ -9,8 +9,8 @@ st.title("⛽ Dasbor Analitik Kebijakan WFH vs Konsumsi BBM")
 st.markdown("Pemerintah merencanakan WFH 1 hari/minggu mulai 1 April. **Ubah** parameter di bawah ini untuk melihat dampak riilnya.")
 
 # --- TOMBOL DOWNLOAD DOKUMEN ---
-# Fitur ini akan membaca file 'dokumen_wfh.pdf' yang ada di folder GitHub yang sama
-file_path = "dokumen_wfh.pdf"
+# Menggunakan nama file persis seperti yang ada di GitHub
+file_path = "DOC-20260323-WA0028..pdf"
 if os.path.exists(file_path):
     with open(file_path, "rb") as file:
         st.download_button(
@@ -21,7 +21,7 @@ if os.path.exists(file_path):
             help="Unduh dokumen asli untuk melihat proses berpikir di balik angka-angka ini."
         )
 else:
-    st.caption("*(File dokumen_wfh.pdf belum diunggah ke repositori)*")
+    st.caption("*(File dokumen sedang disiapkan)*")
 
 st.markdown("---")
 
@@ -74,9 +74,9 @@ with tab1:
     col1_2.metric("🏛️ Uang subsidi negara yg bisa dihemat", f"Rp {hemat_subsidi_triliun_atas:.1f} T", "Skenario Atas")
     col1_3.metric("🛍️ Uang masyarakat yg dihemat", f"Rp {hemat_rakyat_triliun_atas:.1f} T", "Skenario Atas")
     
-    # Teks Penjelasan Rumus
+    # --- HIGHLIGHTED RUMUS TOP-DOWN ---
     st.markdown(f"""
-    <div style="background-color: #f8f9fa; padding: 15px; border-radius: 10px; margin-top: 10px; font-size: 0.85em; color: #555;">
+    <div style="background-color: #fff3cd; color: #856404; padding: 15px; border-radius: 10px; border-left: 5px solid #ffeeba; margin-top: 10px; font-size: 0.85em;">
         <strong>Darimana angka ini berasal? (Rumus Skenario Atas)</strong><br>
         • <strong>Volume BBM Dihemat:</strong> 74.138 KL/hari × {hari_wfh} hari WFH × {minggu_wfh} minggu × {kepatuhan}% kepatuhan<br>
         • <strong>Uang Subsidi Negara:</strong> Total Volume Dihemat × Rp {subsidi} (Selisih harga asli vs jual)<br>
@@ -113,7 +113,6 @@ with tab1:
 with tab2:
     st.markdown("**Pendekatan Bottom-Up:** Menghitung penghematan dengan mengalikan jumlah pekerja dengan konsumsi bensin harian mereka.")
     
-    # Penambahan catatan info sesuai feedback
     st.info("💡 **Rincian Basis Pekerja:** Dari total **147 Juta penduduk bekerja** (Data BPS), skenario ini memfilter persentase yang relevan bisa melakukan WFH, lalu mengalikannya dengan estimasi konsumsi BBM harian per pekerja.")
     
     col_t2_1, col_t2_2, col_t2_3 = st.columns(3)
@@ -139,9 +138,9 @@ with tab2:
     col2_2.metric("🏛️ Uang subsidi negara yg bisa dihemat", f"Rp {hemat_subsidi_pekerja:.1f} T")
     col2_3.metric("🛍️ Uang masyarakat yg dihemat", f"Rp {hemat_rakyat_pekerja:.1f} T")
 
-    # Teks Penjelasan Rumus
+    # --- HIGHLIGHTED RUMUS BOTTOM-UP ---
     st.markdown(f"""
-    <div style="background-color: #f8f9fa; padding: 15px; border-radius: 10px; margin-top: 10px; font-size: 0.85em; color: #555;">
+    <div style="background-color: #fff3cd; color: #856404; padding: 15px; border-radius: 10px; border-left: 5px solid #ffeeba; margin-top: 10px; font-size: 0.85em;">
         <strong>Darimana angka ini berasal? (Rumus Bottom-Up)</strong><br>
         • <strong>Jumlah Pekerja WFH:</strong> {pekerja_total} Juta orang × {proporsi_wfh}%<br>
         • <strong>Volume BBM Dihemat:</strong> (Pekerja WFH × {konsumsi_liter} Liter) × {hari_wfh} hari WFH × {minggu_wfh} minggu × {kepatuhan}% kepatuhan<br>
