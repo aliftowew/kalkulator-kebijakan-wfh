@@ -5,9 +5,10 @@ import plotly.graph_objects as go
 st.set_page_config(page_title="Kalkulator WFH vs BBM", page_icon="⛽", layout="centered")
 
 st.title("⛽ Dasbor Analitik Kebijakan WFH vs Konsumsi BBM")
-st.markdown("Pemerintah merencanakan WFH 1 hari/minggu mulai 1 April. Utak-atik parameter di bawah ini untuk melihat dampak riilnya menggunakan **dua pendekatan perhitungan**.")
+st.markdown("Pemerintah merencanakan WFH 1 hari/minggu mulai 1 April. Utak-atik parameter di bawah ini untuk melihat dampak riilnya.")
 
 # --- AREA INPUT PARAMETER UMUM ---
+# Dipertahankan di atas agar settingan berlaku universal untuk kedua perhitungan di bawahnya
 st.markdown("### ⚙️ Parameter Kebijakan Umum")
 with st.container():
     col_input1, col_input2 = st.columns(2)
@@ -19,10 +20,6 @@ with st.container():
         subsidi = st.number_input("Besaran Subsidi per Liter (Rp)", value=1700)
         harga_bbm = st.number_input("Harga Jual Pertalite (Rp)", value=10000)
 
-    # Signature Semua Bisa Dihitung
-    st.markdown("<p style='text-align: center; color: #757575; margin-top: 15px; margin-bottom: 0px; font-weight: bold;'>💡 Semua Bisa Dihitung</p>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center; color: #9E9E9E; font-size: 0.85em; margin-top: 0px;'>by Alif Towew</p>", unsafe_allow_html=True)
-
 st.markdown("---")
 
 # Total Konsumsi Target
@@ -31,22 +28,25 @@ total_konsumsi_tahunan = 28.1 # Juta KL
 # --- TABS UNTUK 2 PENDEKATAN ---
 tab1, tab2 = st.tabs(["📉 Top-Down (Volume BBM)", "🧑‍💻 Bottom-Up (Data Pekerja)"])
 
+# Konfigurasi agar grafik tidak bisa di-scroll/zoom (view only)
+chart_config = {'displayModeBar': False, 'staticPlot': True}
+
 # ==========================================
 # TAB 1: PENDEKATAN TOP-DOWN (Volume Harian)
 # ==========================================
 with tab1:
     st.markdown("**Pendekatan Top-Down:** Menghitung penghematan dengan memotong porsi volume konsumsi harian kendaraan dari total alokasi Pertamina.")
     
-    # Logika Top-Down (Asumsi harian dari catatan)
-    # Konsumsi harian bawah = 46.302 KL/hari | Atas = 74.138 KL/hari
+    # Logika Top-Down
     hemat_vol_bawah = (46302 * hari_wfh * minggu_wfh * (kepatuhan / 100)) / 1_000_000
     hemat_vol_atas = (74138 * hari_wfh * minggu_wfh * (kepatuhan / 100)) / 1_000_000
     
     persen_bawah = (hemat_vol_bawah / total_konsumsi_tahunan) * 100
     persen_atas = (hemat_vol_atas / total_konsumsi_tahunan) * 100
     
-    hemat_subsidi_triliun_atas = (hemat_vol_atas * subsidi * 1000) / 1000 # Simplifikasi konversi ke Triliun
-    hemat_rakyat_triliun_atas = (hemat_vol_atas * harga_bbm * 1000) / 1000
+    # Perbaikan Konversi ke Triliun (Dibagi 1000)
+    hemat_subsidi_triliun_atas = (hemat_vol_atas * subsidi) / 1000
+    hemat_rakyat_triliun_atas = (hemat_vol_atas * harga_bbm) / 1000
 
     st.subheader(f"⚡ Penghematan: {persen_bawah:.1f}% - {persen_atas:.1f}%")
     
@@ -64,7 +64,7 @@ with tab1:
             go.Bar(name='Tetap Dikonsumsi', x=['Volume Tahunan'], y=[total_konsumsi_tahunan - hemat_vol_atas], marker_color='#E0E0E0')
         ])
         fig_vol1.update_layout(title="Perbandingan Volume di APBN", barmode='stack', margin=dict(l=0, r=0, t=40, b=0))
-        st.plotly_chart(fig_vol1, use_container_width=True, key="vol_topdown")
+        st.plotly_chart(fig_vol1, use_container_width=True, config=chart_config, key="vol_topdown")
 
     with col_chart1_2:
         fig_gauge1 = go.Figure(go.Indicator(
@@ -77,29 +77,30 @@ with tab1:
             }
         ))
         fig_gauge1.update_layout(margin=dict(l=0, r=0, t=40, b=0))
-        st.plotly_chart(fig_gauge1, use_container_width=True, key="gauge_topdown")
+        st.plotly_chart(fig_gauge1, use_container_width=True, config=chart_config, key="gauge_topdown")
 
 # ==========================================
 # TAB 2: PENDEKATAN BOTTOM-UP (Data Pekerja)
 # ==========================================
 with tab2:
-    st.markdown("**Pendekatan Bottom-Up:** Menghitung penghematan dengan mengalikan jumlah pekerja penuh dengan konsumsi bensin harian motor mereka.")
+    st.markdown("**Pendekatan Bottom-Up:** Menghitung penghematan dengan mengalikan jumlah pekerja penuh dengan konsumsi bensin harian mereka.")
     
     col_t2_1, col_t2_2, col_t2_3 = st.columns(3)
     pekerja_total = col_t2_1.number_input("Total Pekerja Penuh (Juta Org)", value=100.5, step=1.0)
-    proporsi_motor = col_t2_2.slider("Pekerja Bermotor (%)", min_value=10, max_value=100, value=50, step=5)
+    # Perbaikan Redaksi
+    proporsi_wfh = col_t2_2.slider("Persentase pekerja yg bisa WFH (%)", min_value=10, max_value=100, value=50, step=5)
     konsumsi_liter = col_t2_3.number_input("Bensin/Pekerja (L/hari)", value=1.5, step=0.1)
 
     # Logika Bottom-Up
-    pekerja_wfh_juta = pekerja_total * (proporsi_motor / 100)
-    # Volume Juta Liter = Ribu KL. Dibagi 1000 jadi Juta KL.
+    pekerja_wfh_juta = pekerja_total * (proporsi_wfh / 100)
     vol_harian_juta_kl = (pekerja_wfh_juta * konsumsi_liter) / 1000 
     
     hemat_vol_pekerja = vol_harian_juta_kl * hari_wfh * minggu_wfh * (kepatuhan / 100)
     persen_pekerja = (hemat_vol_pekerja / total_konsumsi_tahunan) * 100
     
-    hemat_subsidi_pekerja = (hemat_vol_pekerja * subsidi * 1000) / 1000
-    hemat_rakyat_pekerja = (hemat_vol_pekerja * harga_bbm * 1000) / 1000
+    # Perbaikan Konversi ke Triliun
+    hemat_subsidi_pekerja = (hemat_vol_pekerja * subsidi) / 1000
+    hemat_rakyat_pekerja = (hemat_vol_pekerja * harga_bbm) / 1000
 
     st.subheader(f"⚡ Penghematan Nasional: {persen_pekerja:.2f}%")
     
@@ -117,7 +118,7 @@ with tab2:
             go.Bar(name='Tetap Dikonsumsi', x=['Volume Tahunan'], y=[total_konsumsi_tahunan - hemat_vol_pekerja], marker_color='#E0E0E0')
         ])
         fig_vol2.update_layout(title="Perbandingan Volume di APBN", barmode='stack', margin=dict(l=0, r=0, t=40, b=0))
-        st.plotly_chart(fig_vol2, use_container_width=True, key="vol_bottomup")
+        st.plotly_chart(fig_vol2, use_container_width=True, config=chart_config, key="vol_bottomup")
 
     with col_chart2_2:
         fig_gauge2 = go.Figure(go.Indicator(
@@ -130,4 +131,9 @@ with tab2:
             }
         ))
         fig_gauge2.update_layout(margin=dict(l=0, r=0, t=40, b=0))
-        st.plotly_chart(fig_gauge2, use_container_width=True, key="gauge_bottomup")
+        st.plotly_chart(fig_gauge2, use_container_width=True, config=chart_config, key="gauge_bottomup")
+
+# --- FOOTER ---
+st.markdown("---")
+st.markdown("<p style='text-align: center; color: #757575; font-weight: bold; margin-bottom: 0px;'>💡 Semua Bisa Dihitung</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: #9E9E9E; font-size: 0.85em; margin-top: 0px;'>by Alif Towew</p>", unsafe_allow_html=True)
