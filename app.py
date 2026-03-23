@@ -1,11 +1,29 @@
 import streamlit as st
 import plotly.graph_objects as go
+import os
 
 # Konfigurasi Halaman 
 st.set_page_config(page_title="Kalkulator WFH vs BBM", page_icon="⛽", layout="centered")
 
 st.title("⛽ Dasbor Analitik Kebijakan WFH vs Konsumsi BBM")
-st.markdown("Pemerintah merencanakan WFH 1 hari/minggu mulai 1 April. Ubah parameter di bawah ini untuk melihat dampak riilnya.")
+st.markdown("Pemerintah merencanakan WFH 1 hari/minggu mulai 1 April. **Ubah** parameter di bawah ini untuk melihat dampak riilnya.")
+
+# --- TOMBOL DOWNLOAD DOKUMEN ---
+# Fitur ini akan membaca file 'dokumen_wfh.pdf' yang ada di folder GitHub yang sama
+file_path = "dokumen_wfh.pdf"
+if os.path.exists(file_path):
+    with open(file_path, "rb") as file:
+        st.download_button(
+            label="📄 Download Dokumen Coretan Analisis (PDF)",
+            data=file,
+            file_name="Analisis_Kebijakan_WFH.pdf",
+            mime="application/pdf",
+            help="Unduh dokumen asli untuk melihat proses berpikir di balik angka-angka ini."
+        )
+else:
+    st.caption("*(File dokumen_wfh.pdf belum diunggah ke repositori)*")
+
+st.markdown("---")
 
 # --- AREA INPUT PARAMETER UMUM ---
 st.markdown("### ⚙️ Parameter Kebijakan Umum")
@@ -18,15 +36,6 @@ with st.container():
         minggu_wfh = st.number_input("Durasi WFH (Minggu/Tahun)", value=39, help="39 minggu karena dimulai 1 April")
         subsidi = st.number_input("Besaran Subsidi per Liter (Rp)", value=1700)
         harga_bbm = st.number_input("Harga Jual Pertalite (Rp)", value=10000)
-
-# --- TRANSPARANSI ASUMSI DATA ---
-with st.expander("📊 Lihat Data Asumsi Dasar (Sumber: Pertamina & BPS)"):
-    st.markdown("""
-    - **Total Alokasi Pertalite 2025:** 28,1 Juta KL per tahun
-    - **Porsi Skenario Atas (Seluruh Kendaraan Bermotor):** 27,1 Juta KL (96,3% dari total)
-    - **Porsi Skenario Bawah (Motor & Mobil <1400cc):** 16,9 Juta KL (60,0% dari total)
-    - **Total Penduduk Bekerja (BPS):** 147 Juta Orang
-    """)
 
 st.markdown("---")
 
@@ -45,7 +54,6 @@ chart_config = {'displayModeBar': False, 'staticPlot': True}
 with tab1:
     st.markdown("**Pendekatan Top-Down:** Menghitung penghematan dengan memotong porsi volume konsumsi harian kendaraan dari total alokasi Pertamina.")
     
-    # Menampilkan detail volume konsumsi sesuai feedback
     st.info("💡 **Rincian Volume yang Dipakai Pekerja/Kendaraan:** Dari total 28,1 Juta KL, skenario ini menghitung target pasar sebesar **16,9 Juta KL** (Skenario Bawah: Motor & Mobil kecil) hingga **27,1 Juta KL** (Skenario Atas: Seluruh kendaraan bermotor).")
     
     # Logika Top-Down
@@ -64,7 +72,17 @@ with tab1:
     col1_1, col1_2, col1_3 = st.columns(3)
     col1_1.metric("🛢️ Volume BBM Dihemat", f"{hemat_vol_bawah:.2f} - {hemat_vol_atas:.2f} Jt KL")
     col1_2.metric("🏛️ Uang subsidi negara yg bisa dihemat", f"Rp {hemat_subsidi_triliun_atas:.1f} T", "Skenario Atas")
-    col1_3.metric("🛍️ Uang masyarakat yg dihemat untuk bensin", f"Rp {hemat_rakyat_triliun_atas:.1f} T", "Skenario Atas")
+    col1_3.metric("🛍️ Uang masyarakat yg dihemat", f"Rp {hemat_rakyat_triliun_atas:.1f} T", "Skenario Atas")
+    
+    # Teks Penjelasan Rumus
+    st.markdown(f"""
+    <div style="background-color: #f8f9fa; padding: 15px; border-radius: 10px; margin-top: 10px; font-size: 0.85em; color: #555;">
+        <strong>Darimana angka ini berasal? (Rumus Skenario Atas)</strong><br>
+        • <strong>Volume BBM Dihemat:</strong> 74.138 KL/hari × {hari_wfh} hari WFH × {minggu_wfh} minggu × {kepatuhan}% kepatuhan<br>
+        • <strong>Uang Subsidi Negara:</strong> Total Volume Dihemat × Rp {subsidi} (Selisih harga asli vs jual)<br>
+        • <strong>Uang Masyarakat:</strong> Total Volume Dihemat × Rp {harga_bbm} (Harga jual Pertalite)
+    </div>
+    """, unsafe_allow_html=True)
     
     st.markdown("---")
     col_chart1_1, col_chart1_2 = st.columns(2)
@@ -95,10 +113,12 @@ with tab1:
 with tab2:
     st.markdown("**Pendekatan Bottom-Up:** Menghitung penghematan dengan mengalikan jumlah pekerja dengan konsumsi bensin harian mereka.")
     
+    # Penambahan catatan info sesuai feedback
+    st.info("💡 **Rincian Basis Pekerja:** Dari total **147 Juta penduduk bekerja** (Data BPS), skenario ini memfilter persentase yang relevan bisa melakukan WFH, lalu mengalikannya dengan estimasi konsumsi BBM harian per pekerja.")
+    
     col_t2_1, col_t2_2, col_t2_3 = st.columns(3)
-    # Ubah basis default ke 147 juta orang sesuai kesepakatan baru
     pekerja_total = col_t2_1.number_input("Total Pekerja (Juta Org)", value=147.0, step=1.0)
-    proporsi_wfh = col_t2_2.slider("Persentase pekerja yg bisa WFH (%)", min_value=10, max_value=100, value=50, step=5)
+    proporsi_wfh = col_t2_2.slider("Persentase pekerja yg bisa WFH (%)", min_value=10, max_value=100, value=34, step=1)
     konsumsi_liter = col_t2_3.number_input("Bensin/Pekerja (L/hari)", value=1.5, step=0.1)
 
     # Logika Bottom-Up
@@ -117,7 +137,18 @@ with tab2:
     col2_1, col2_2, col2_3 = st.columns(3)
     col2_1.metric("🛢️ Volume BBM Dihemat", f"{hemat_vol_pekerja:.2f} Jt KL")
     col2_2.metric("🏛️ Uang subsidi negara yg bisa dihemat", f"Rp {hemat_subsidi_pekerja:.1f} T")
-    col2_3.metric("🛍️ Uang masyarakat yg dihemat untuk bensin", f"Rp {hemat_rakyat_pekerja:.1f} T")
+    col2_3.metric("🛍️ Uang masyarakat yg dihemat", f"Rp {hemat_rakyat_pekerja:.1f} T")
+
+    # Teks Penjelasan Rumus
+    st.markdown(f"""
+    <div style="background-color: #f8f9fa; padding: 15px; border-radius: 10px; margin-top: 10px; font-size: 0.85em; color: #555;">
+        <strong>Darimana angka ini berasal? (Rumus Bottom-Up)</strong><br>
+        • <strong>Jumlah Pekerja WFH:</strong> {pekerja_total} Juta orang × {proporsi_wfh}%<br>
+        • <strong>Volume BBM Dihemat:</strong> (Pekerja WFH × {konsumsi_liter} Liter) × {hari_wfh} hari WFH × {minggu_wfh} minggu × {kepatuhan}% kepatuhan<br>
+        • <strong>Uang Subsidi Negara:</strong> Total Volume Dihemat × Rp {subsidi}<br>
+        • <strong>Uang Masyarakat:</strong> Total Volume Dihemat × Rp {harga_bbm}
+    </div>
+    """, unsafe_allow_html=True)
 
     st.markdown("---")
     col_chart2_1, col_chart2_2 = st.columns(2)
