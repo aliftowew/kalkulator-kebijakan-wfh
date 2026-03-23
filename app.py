@@ -5,7 +5,7 @@ import plotly.graph_objects as go
 st.set_page_config(page_title="Kalkulator WFH vs BBM", page_icon="⛽", layout="centered")
 
 st.title("⛽ Dasbor Analitik Kebijakan WFH vs Konsumsi BBM")
-st.markdown("Pemerintah merencanakan WFH 1 hari/minggu mulai 1 April. Utak-atik parameter di bawah ini untuk melihat dampak riilnya.")
+st.markdown("Pemerintah merencanakan WFH 1 hari/minggu mulai 1 April. Ubah parameter di bawah ini untuk melihat dampak riilnya.")
 
 # --- AREA INPUT PARAMETER UMUM ---
 st.markdown("### ⚙️ Parameter Kebijakan Umum")
