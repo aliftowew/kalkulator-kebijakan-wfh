@@ -10,7 +10,7 @@ st.markdown("Pemerintah merencanakan WFH 1 hari/minggu mulai 1 April. **Ubah** p
 
 # --- TOMBOL DOWNLOAD DOKUMEN ---
 # Menggunakan nama file persis seperti yang ada di GitHub
-file_path = "DOC-20260323-WA0028..pdf"
+file_path = "kebijakanwfh.pdf"
 if os.path.exists(file_path):
     with open(file_path, "rb") as file:
         st.download_button(
