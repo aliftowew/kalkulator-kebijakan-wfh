@@ -8,7 +8,6 @@ st.title("⛽ Dasbor Analitik Kebijakan WFH vs Konsumsi BBM")
 st.markdown("Pemerintah merencanakan WFH 1 hari/minggu mulai 1 April. Utak-atik parameter di bawah ini untuk melihat dampak riilnya.")
 
 # --- AREA INPUT PARAMETER UMUM ---
-# Dipertahankan di atas agar settingan berlaku universal untuk kedua perhitungan di bawahnya
 st.markdown("### ⚙️ Parameter Kebijakan Umum")
 with st.container():
     col_input1, col_input2 = st.columns(2)
@@ -20,6 +19,15 @@ with st.container():
         subsidi = st.number_input("Besaran Subsidi per Liter (Rp)", value=1700)
         harga_bbm = st.number_input("Harga Jual Pertalite (Rp)", value=10000)
 
+# --- TRANSPARANSI ASUMSI DATA ---
+with st.expander("📊 Lihat Data Asumsi Dasar (Sumber: Pertamina & BPS)"):
+    st.markdown("""
+    - **Total Alokasi Pertalite 2025:** 28,1 Juta KL per tahun
+    - **Porsi Skenario Atas (Seluruh Kendaraan Bermotor):** 27,1 Juta KL (96,3% dari total)
+    - **Porsi Skenario Bawah (Motor & Mobil <1400cc):** 16,9 Juta KL (60,0% dari total)
+    - **Total Penduduk Bekerja (BPS):** 147 Juta Orang
+    """)
+
 st.markdown("---")
 
 # Total Konsumsi Target
@@ -28,7 +36,7 @@ total_konsumsi_tahunan = 28.1 # Juta KL
 # --- TABS UNTUK 2 PENDEKATAN ---
 tab1, tab2 = st.tabs(["📉 Top-Down (Volume BBM)", "🧑‍💻 Bottom-Up (Data Pekerja)"])
 
-# Konfigurasi agar grafik tidak bisa di-scroll/zoom (view only)
+# Konfigurasi agar grafik statis (view only)
 chart_config = {'displayModeBar': False, 'staticPlot': True}
 
 # ==========================================
@@ -37,6 +45,9 @@ chart_config = {'displayModeBar': False, 'staticPlot': True}
 with tab1:
     st.markdown("**Pendekatan Top-Down:** Menghitung penghematan dengan memotong porsi volume konsumsi harian kendaraan dari total alokasi Pertamina.")
     
+    # Menampilkan detail volume konsumsi sesuai feedback
+    st.info("💡 **Rincian Volume yang Dipakai Pekerja/Kendaraan:** Dari total 28,1 Juta KL, skenario ini menghitung target pasar sebesar **16,9 Juta KL** (Skenario Bawah: Motor & Mobil kecil) hingga **27,1 Juta KL** (Skenario Atas: Seluruh kendaraan bermotor).")
+    
     # Logika Top-Down
     hemat_vol_bawah = (46302 * hari_wfh * minggu_wfh * (kepatuhan / 100)) / 1_000_000
     hemat_vol_atas = (74138 * hari_wfh * minggu_wfh * (kepatuhan / 100)) / 1_000_000
@@ -44,7 +55,6 @@ with tab1:
     persen_bawah = (hemat_vol_bawah / total_konsumsi_tahunan) * 100
     persen_atas = (hemat_vol_atas / total_konsumsi_tahunan) * 100
     
-    # Perbaikan Konversi ke Triliun (Dibagi 1000)
     hemat_subsidi_triliun_atas = (hemat_vol_atas * subsidi) / 1000
     hemat_rakyat_triliun_atas = (hemat_vol_atas * harga_bbm) / 1000
 
@@ -83,11 +93,11 @@ with tab1:
 # TAB 2: PENDEKATAN BOTTOM-UP (Data Pekerja)
 # ==========================================
 with tab2:
-    st.markdown("**Pendekatan Bottom-Up:** Menghitung penghematan dengan mengalikan jumlah pekerja penuh dengan konsumsi bensin harian mereka.")
+    st.markdown("**Pendekatan Bottom-Up:** Menghitung penghematan dengan mengalikan jumlah pekerja dengan konsumsi bensin harian mereka.")
     
     col_t2_1, col_t2_2, col_t2_3 = st.columns(3)
-    pekerja_total = col_t2_1.number_input("Total Pekerja Penuh (Juta Org)", value=100.5, step=1.0)
-    # Perbaikan Redaksi
+    # Ubah basis default ke 147 juta orang sesuai kesepakatan baru
+    pekerja_total = col_t2_1.number_input("Total Pekerja (Juta Org)", value=147.0, step=1.0)
     proporsi_wfh = col_t2_2.slider("Persentase pekerja yg bisa WFH (%)", min_value=10, max_value=100, value=50, step=5)
     konsumsi_liter = col_t2_3.number_input("Bensin/Pekerja (L/hari)", value=1.5, step=0.1)
 
@@ -98,7 +108,6 @@ with tab2:
     hemat_vol_pekerja = vol_harian_juta_kl * hari_wfh * minggu_wfh * (kepatuhan / 100)
     persen_pekerja = (hemat_vol_pekerja / total_konsumsi_tahunan) * 100
     
-    # Perbaikan Konversi ke Triliun
     hemat_subsidi_pekerja = (hemat_vol_pekerja * subsidi) / 1000
     hemat_rakyat_pekerja = (hemat_vol_pekerja * harga_bbm) / 1000
 
