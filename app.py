@@ -9,7 +9,6 @@ st.title("⛽ Dasbor Analitik Kebijakan WFH vs Konsumsi BBM")
 st.markdown("Pemerintah merencanakan WFH 1 hari/minggu mulai 1 April. **Ubah** parameter di bawah ini untuk melihat dampak riilnya.")
 
 # --- TOMBOL DOWNLOAD DOKUMEN ---
-# Menggunakan nama file persis seperti yang ada di GitHub
 file_path = "kebijakanwfh.pdf"
 if os.path.exists(file_path):
     with open(file_path, "rb") as file:
@@ -34,8 +33,21 @@ with st.container():
         kepatuhan = st.slider("Tingkat Realisasi WFH (%)", min_value=10, max_value=100, value=100, step=5)
     with col_input2:
         minggu_wfh = st.number_input("Durasi WFH (Minggu/Tahun)", value=39, help="39 minggu karena dimulai 1 April")
-        subsidi = st.number_input("Besaran Subsidi per Liter (Rp)", value=1700)
-        harga_bbm = st.number_input("Harga Jual Pertalite (Rp)", value=10000)
+        
+        # Menggunakan text_input agar bisa menampilkan format titik
+        subsidi_str = st.text_input("Besaran Subsidi per Liter (Rp)", value="1.700")
+        harga_bbm_str = st.text_input("Harga Jual Pertalite (Rp)", value="10.000")
+        
+        # Membuang titik di latar belakang untuk keperluan matematika
+        try:
+            subsidi = float(subsidi_str.replace(".", "").replace(",", ""))
+        except ValueError:
+            subsidi = 1700.0  # Nilai default jika input error/kosong
+            
+        try:
+            harga_bbm = float(harga_bbm_str.replace(".", "").replace(",", ""))
+        except ValueError:
+            harga_bbm = 10000.0 # Nilai default jika input error/kosong
 
 st.markdown("---")
 
@@ -75,12 +87,16 @@ with tab1:
     col1_3.metric("🛍️ Uang masyarakat yg dihemat", f"Rp {hemat_rakyat_triliun_atas:.1f} T", "Skenario Atas")
     
     # --- HIGHLIGHTED RUMUS TOP-DOWN ---
+    # Memformat angka ke format ribuan dengan titik untuk tampilan rumus
+    subsidi_format = f"{int(subsidi):,}".replace(",", ".")
+    harga_bbm_format = f"{int(harga_bbm):,}".replace(",", ".")
+    
     st.markdown(f"""
     <div style="background-color: #fff3cd; color: #856404; padding: 15px; border-radius: 10px; border-left: 5px solid #ffeeba; margin-top: 10px; font-size: 0.85em;">
         <strong>Darimana angka ini berasal? (Rumus Skenario Atas)</strong><br>
         • <strong>Volume BBM Dihemat:</strong> 74.138 KL/hari × {hari_wfh} hari WFH × {minggu_wfh} minggu × {kepatuhan}% kepatuhan<br>
-        • <strong>Uang Subsidi Negara:</strong> Total Volume Dihemat × Rp {subsidi} (Selisih harga asli vs jual)<br>
-        • <strong>Uang Masyarakat:</strong> Total Volume Dihemat × Rp {harga_bbm} (Harga jual Pertalite)
+        • <strong>Uang Subsidi Negara:</strong> Total Volume Dihemat × Rp {subsidi_format} (Selisih harga asli vs jual)<br>
+        • <strong>Uang Masyarakat:</strong> Total Volume Dihemat × Rp {harga_bbm_format} (Harga jual Pertalite)
     </div>
     """, unsafe_allow_html=True)
     
@@ -144,8 +160,8 @@ with tab2:
         <strong>Darimana angka ini berasal? (Rumus Bottom-Up)</strong><br>
         • <strong>Jumlah Pekerja WFH:</strong> {pekerja_total} Juta orang × {proporsi_wfh}%<br>
         • <strong>Volume BBM Dihemat:</strong> (Pekerja WFH × {konsumsi_liter} Liter) × {hari_wfh} hari WFH × {minggu_wfh} minggu × {kepatuhan}% kepatuhan<br>
-        • <strong>Uang Subsidi Negara:</strong> Total Volume Dihemat × Rp {subsidi}<br>
-        • <strong>Uang Masyarakat:</strong> Total Volume Dihemat × Rp {harga_bbm}
+        • <strong>Uang Subsidi Negara:</strong> Total Volume Dihemat × Rp {subsidi_format}<br>
+        • <strong>Uang Masyarakat:</strong> Total Volume Dihemat × Rp {harga_bbm_format}
     </div>
     """, unsafe_allow_html=True)
 
